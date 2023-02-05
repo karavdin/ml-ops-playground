@@ -1,0 +1,32 @@
+version: '3.5'
+services:
+  db:
+    image: postgres:latest
+    container_name: postgres_demo
+    restart: always
+    environment:
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: postgres
+      PGDATA: /data/postgres
+    ports:
+      - '5432:5432'
+    volumes:
+      - postgres-db:/data/postgres
+  web:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    ports:
+      - "80:80"
+    volumes:
+      - .:/app/
+    environment:
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: postgres=value
+    networks:
+      - practice
+volumes:
+  postgres-db:
+    driver: local
+networks:
+  practice:
