@@ -4,15 +4,16 @@ from pathlib import Path
 import joblib
 import pandas as pd
 import yfinance as yf
-#from fbprophet import Prophet
+
 from prophet import Prophet
 
 BASE_DIR = Path(__file__).resolve(strict=True).parent
 TODAY = datetime.date.today()
 
-#MSFT
+# MSFT
+
+
 def train(ticker="GOOG"):
-    # data = yf.download("^GSPC", "2008-01-01", TODAY.strftime("%Y-%m-%d"))
     data = yf.download(ticker, "2020-01-01", TODAY.strftime("%Y-%m-%d"))
     data.head()
     data["Adj Close"].plot(title=f"{ticker} Stock Adjusted Closing Price")
@@ -27,11 +28,13 @@ def train(ticker="GOOG"):
     model = Prophet()
     model.fit(df_forecast)
 
-    joblib.dump(model, Path(BASE_DIR).joinpath(f"{ticker}.joblib"))
+    joblib.dump(model, Path(BASE_DIR).joinpath(
+        'models_20230217', f"{ticker}.joblib"))
 
 
 def predict(ticker="GOOG", days=7):
-    model_file = Path(BASE_DIR).joinpath(f"{ticker}.joblib")
+    model_file = Path(BASE_DIR).joinpath('models_20230217', f"{ticker}.joblib")
+    # model_file = Path(BASE_DIR).joinpath(f"{ticker}.joblib")
     if not model_file.exists():
         return False
 
