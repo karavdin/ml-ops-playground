@@ -5,10 +5,12 @@ from model import convert, predict
 
 from db import crud, models, schemas
 
-from db.database import SessionLocal, engine
+from db.database import SessionLocal, engine, Base
 
-models.Base.metadata.create_all(bind=engine)
+print("--- Create Tables --")
+Base.metadata.create_all(bind=engine)  # start db
 
+print("--- Start FastAPI --")
 app = FastAPI()
 
 
