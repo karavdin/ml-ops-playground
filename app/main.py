@@ -1,16 +1,29 @@
+import logging
+# from loguru import logger
 from fastapi import FastAPI, HTTPException
 from pydantic import BaseModel
 
 from model import convert, predict
 
-from db import crud, models, schemas
+from db.crud import get_predictions
+from db.database import SessionLocal, engine, Base, get_db
+from db.models import Predictions
 
-from db.database import SessionLocal, engine, Base
 
-print("--- Create Tables --")
-Base.metadata.create_all(bind=engine)  # start db
+def init_db():
+    Base.metadata.create_all(engine)  # start db
 
-print("--- Start FastAPI --")
+
+SessionLocal = sessionmaker(autoflush=False, bind=engine)
+# db = SessionLocal()
+
+# tom = Predictions(ticker="Tom", forecast=0.1)
+# db.add(tom)     # add to db
+# db.commit()     # save changes
+# db.refresh(tom)
+# print(tom.id)   # get ID
+
+logging.info("--- Start FastAPI --")
 app = FastAPI()
 
 
@@ -25,22 +38,26 @@ class StockOut(StockIn):
 # Dependency
 
 
-def get_db():
-    db = SessionLocal()
-    try:
-        yield db
-    finally:
-        db.close()
+# def get_db():
+#     db = SessionLocal()
+#     try:
+#         yield db
+#     finally:
+#         db.close()
 
+@app.on_event("startup")
+async def on_startup():
+    logging.info("--- Create Tables --")
+    init_db()
 # routes
 
 
-@app.get("/ping")
+@ app.get("/ping")
 async def pong():
     return {"ping": "pong!"}
 
 
-@app.post("/predict", response_model=StockOut, status_code=200)
+@ app.post("/predict", response_model=StockOut, status_code=200)
 def get_prediction(payload: StockIn):
     ticker = payload.ticker
 
@@ -53,9 +70,9 @@ def get_prediction(payload: StockIn):
     return response_object
 
 
-@app.post("/predict", response_model=schemas.Predictions)
+@ app.post("/predict", response_model=schemas.Predictions)
 def create_predictions(predictions: schemas.PredictionsCreate, db: Session = Depends(get_db)):
-    db_prediction = crud.get_predictions(
+    db_prediction = get_predictions(
         db, ticker=predictions.ticker)  # ToDo: check dates
     if db_prediction:
         raise HTTPException(
@@ -63,9 +80,9 @@ def create_predictions(predictions: schemas.PredictionsCreate, db: Session = Dep
     return crud.create_predictions(db=db, predictions=predictions)
 
 
-@app.get("/predict", response_model=StockOut)
+@ app.get("/predict", response_model=StockOut)
 def read_predictions(payload: StockIn, limit: int = 7, db: Session = Depends(get_db)):
-    prediction_list = crud.get_predictions(
+    prediction_list = get_predictions(
         db, limit=limit, ticker=payload.ticker)
     if not prediction_list:
         raise HTTPException(status_code=400, detail="Model not found.")
