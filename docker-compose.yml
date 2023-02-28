@@ -11,19 +11,22 @@ services:
       POSTGRES_SERVER: localhost
     ports:
       - 5432:5432
+    networks:
+      - practice
     # volumes:
     #   - postgres-db:/data/postgres
   web:
     build:
       context: .
       dockerfile: Dockerfile
+    command: bash -c "app/scripts/wait-for-postgres.sh db_service:5432 -- uvicorn app.main:app --host 0.0.0.0 --port 80"
     ports:
       - "80:80"
     volumes:
       - .:/app/
     environment:
       POSTGRES_USER: postgres
-      POSTGRES_PASSWORD: postgres=value
+      POSTGRES_PASSWORD: postgres
     networks:
       - practice
 # volumes:

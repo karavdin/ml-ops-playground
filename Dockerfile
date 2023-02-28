@@ -6,9 +6,11 @@ COPY ./requirements.txt /code/requirements.txt
 
 RUN pip install --no-cache-dir -r /code/requirements.txt
 
-COPY ./app/* /code/.
+COPY ./app/ /code/app/
 RUN mkdir -p /code/models_20230217
 COPY ./app/models_20230217/* /code/models_20230217/.
 
-CMD ["uvicorn", "main:app", "--host", "0.0.0.0", "--port", "80"]
+RUN chmod a+x /code/app/scripts/wait-for-postgres.sh
+
+CMD ["uvicorn", "app.main:app", "--host", "0.0.0.0", "--port", "80"]
 
