@@ -1,8 +1,7 @@
 from sqlalchemy.orm import Session
-from datetime import date
 
-from . import schemas
-from . import models
+from app.db import schemas
+from app.db import models
 
 
 def get_predictions(db: Session, ticker: str, limit: int = 7):

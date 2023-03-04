@@ -1,6 +1,5 @@
-from sqlalchemy import Date, Column, Float, Integer, String
-from sqlalchemy.orm import relationship
-from database import Base
+from sqlalchemy import Column, Float, Integer, String
+from app.db.database import Base
 
 
 class Predictions(Base):
