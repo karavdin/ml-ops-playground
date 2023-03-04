@@ -15,17 +15,11 @@ def init_db():
     print("###### Start creating schemas ########")
     Base.metadata.create_all(engine)  # start db
 
-
-#SessionLocal = sessionmaker(autoflush=False, bind=engine)
+# SessionLocal = sessionmaker(autoflush=False, bind=engine)
 # db = SessionLocal()
 
-# tom = Predictions(ticker="Tom", forecast=0.1)
-# db.add(tom)     # add to db
-# db.commit()     # save changes
-# db.refresh(tom)
-# print(tom.id)   # get ID
 
-logging.info("--- Start FastAPI --")
+print("###### Start FastAPI #####")
 app = FastAPI()
 
 
@@ -37,21 +31,10 @@ class StockIn(BaseModel):
 class StockOut(StockIn):
     forecast: dict
 
-# Dependency
-
-
-# def get_db():
-#     db = SessionLocal()
-#     try:
-#         yield db
-#     finally:
-#         db.close()
 
 @app.on_event("startup")
 async def on_startup():
-    logging.info("--- Create Tables --")
     init_db()
-# routes
 
 
 @app.get("/ping")
@@ -70,6 +53,26 @@ def get_prediction(payload: StockIn):
 
     response_object = {"ticker": ticker, "forecast": convert(prediction_list)}
     return response_object
+
+
+@app.post("/fill", response_model=StockOut, status_code=200)
+def fill_db(payload: StockIn):
+    ticker = payload.ticker
+    # print("##### Fill database #####")
+    prediction_list = predict(ticker)
+    # print(prediction_list)
+    if not prediction_list:
+        raise HTTPException(status_code=400, detail="Model not found.")
+
+    response_object = {"ticker": ticker, "forecast": convert(prediction_list)}
+    return response_object
+
+# tom = Predictions(ticker="Tom", forecast=0.1)
+# db.add(tom)     # add to db
+# db.commit()     # save changes
+# db.refresh(tom)
+# print(tom.id)   # get ID
+
 
 """
 
