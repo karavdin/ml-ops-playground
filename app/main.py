@@ -5,7 +5,7 @@ from pydantic import BaseModel
 
 from app.model import convert, predict
 
-from app.db.crud import get_predictions
+from app.db.crud import get_predictions, convert_db_records
 from app.db.database import SessionLocal, engine, Base, get_db
 from app.db.models import Predictions
 from app.db import schemas
@@ -73,14 +73,15 @@ def fill_db(payload: StockIn, db: SessionLocal = Depends(get_db)):
         # print(record.id)   # get ID
 
 
-@app.get("/forecast", response_model=StockOut, status_code=200)
+@app.post("/forecast", response_model=StockOut, status_code=200)
 def read_forecast_from_db(payload: StockIn, limit: int = 7, db: SessionLocal = Depends(get_db)):
     ticker = payload.ticker
-    prediction_list = get_predictions(db, limit=limit, ticker=ticker)
-    if not prediction_list:
+    predictions = get_predictions(db, limit=limit, ticker=ticker)
+    if not predictions:
         raise HTTPException(status_code=400, detail="Data not found.")
 
-    response_object = {"ticker": ticker, "forecast": convert(prediction_list)}
+    response_object = {"ticker": ticker,
+                       "forecast": convert_db_records(predictions)}
     return response_object
 
 
