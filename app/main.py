@@ -56,6 +56,8 @@ def get_prediction(payload: StockIn):
     response_object = {"ticker": ticker, "forecast": convert(prediction_list)}
     return response_object
 
+# ToDo: check if forecast for given date already exist and update the record
+
 
 @app.post("/fill", status_code=200)
 def fill_db(payload: StockIn, db: SessionLocal = Depends(get_db)):
@@ -69,6 +71,17 @@ def fill_db(payload: StockIn, db: SessionLocal = Depends(get_db)):
         db.commit()     # save changes
         db.refresh(record)
         # print(record.id)   # get ID
+
+
+@app.get("/forecast", response_model=StockOut, status_code=200)
+def read_forecast_from_db(payload: StockIn, limit: int = 7, db: SessionLocal = Depends(get_db)):
+    ticker = payload.ticker
+    prediction_list = get_predictions(db, limit=limit, ticker=ticker)
+    if not prediction_list:
+        raise HTTPException(status_code=400, detail="Data not found.")
+
+    response_object = {"ticker": ticker, "forecast": convert(prediction_list)}
+    return response_object
 
 
 """
