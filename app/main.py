@@ -5,7 +5,7 @@ from pydantic import BaseModel
 
 from app.model import convert, predict
 
-from app.db.crud import get_predictions, convert_db_records
+from app.db.crud import get_predictions, convert_db_records, get_items
 from app.db.database import SessionLocal, engine, Base, get_db
 from app.db.models import Predictions
 from app.db import schemas
@@ -79,10 +79,18 @@ def read_forecast_from_db(payload: StockIn, limit: int = 7, db: SessionLocal = D
     predictions = get_predictions(db, limit=limit, ticker=ticker)
     if not predictions:
         raise HTTPException(status_code=400, detail="Data not found.")
-
+    print(" --- DEBUG START ---")
+    print(predictions)
     response_object = {"ticker": ticker,
                        "forecast": convert_db_records(predictions)}
+    print(" --- DEBUG END ---")
     return response_object
+
+
+@app.get("/testing_api/")
+def read_all(db: SessionLocal = Depends(get_db)):
+    forecast = get_items(db)
+    return forecast
 
 
 """

@@ -13,8 +13,8 @@ services:
       - 5432:5432
     networks:
       - practice
-    # volumes:
-    #   - postgres-db:/data/postgres
+    volumes:
+      - ./data:/var/lib/postgresql/data
   web:
     build:
       context: .
@@ -22,6 +22,8 @@ services:
     command: bash -c "app/scripts/wait-for-postgres.sh db_service:5432 -- uvicorn app.main:app --host 0.0.0.0 --port 80"
     ports:
       - "80:80"
+    depends_on:
+      - db
     volumes:
       - .:/app/
     environment:
@@ -29,8 +31,8 @@ services:
       POSTGRES_PASSWORD: postgres
     networks:
       - practice
-# volumes:
-#   postgres-db:
-#     driver: local
+volumes:
+  data:
+    driver: local
 networks:
   practice:

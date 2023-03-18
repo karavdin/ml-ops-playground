@@ -4,13 +4,24 @@ from app.db import schemas
 from app.db import models
 
 
+def get_items(db: Session):
+    return db.execute(models.Predictions).scalars().all()
+
+
 def get_predictions(db: Session, ticker: str, limit: int = 7):
-    return db.query(models.Predictions).filter(models.Predictions.ticker == ticker).limit(limit).all()
+    # print(" Query forecast")
+    forecast = db.query(models.Predictions).filter(
+        models.Predictions.ticker == ticker).limit(limit).all()
+    # print(forecast)
+    return forecast
 
 
 def convert_db_records(predictions):
     output = {}
     for data in predictions:
+        print("data", data)
+        print("data['ticker']", data['ticker'])
+        print("data['date']", data["date"])
         date = data["date"].strftime("%m/%d/%Y")
         output[date] = data["forecast"]
     return output
