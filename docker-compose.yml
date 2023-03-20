@@ -1,7 +1,8 @@
 version: '3.5'
 services:
+
   db:
-    image: postgres:latest
+    image: postgres:13
     container_name: postgres_demo
     restart: always
     environment:
