@@ -6,7 +6,7 @@ from pydantic import BaseModel
 from app.model import convert, predict
 
 from app.db.crud import get_predictions, convert_db_records, get_items
-from app.db.database import SessionLocal, engine, Base, get_db
+from app.db.database import SessionLocal, engine, Base, get_session
 from app.db.models import Predictions
 from app.db import schemas
 
@@ -60,7 +60,7 @@ def get_prediction(payload: StockIn):
 
 
 @app.post("/fill", status_code=200)
-def fill_db(payload: StockIn, db: SessionLocal = Depends(get_db)):
+def fill_db(payload: StockIn, db: SessionLocal = Depends(get_session)):
     ticker = payload.ticker
     prediction_list = predict(ticker)
     for data in prediction_list:
@@ -74,7 +74,7 @@ def fill_db(payload: StockIn, db: SessionLocal = Depends(get_db)):
 
 
 @app.post("/forecast", response_model=StockOut, status_code=200)
-def read_forecast_from_db(payload: StockIn, limit: int = 7, db: SessionLocal = Depends(get_db)):
+def read_forecast_from_db(payload: StockIn, limit: int = 7, db: SessionLocal = Depends(get_session)):
     ticker = payload.ticker
     predictions = get_predictions(db, limit=limit, ticker=ticker)
     if not predictions:
@@ -87,10 +87,14 @@ def read_forecast_from_db(payload: StockIn, limit: int = 7, db: SessionLocal = D
     return response_object
 
 
-@app.get("/testing_api/")
-def read_all(db: SessionLocal = Depends(get_db)):
-    forecast = get_items(db)
-    return forecast
+@app.get("/testing_api")
+def read_all():
+    print(" --- Read from DB ---")
+    with get_session() as session:
+        items = session.query(Predictions).all()
+
+    return items
+
 
 
 """
