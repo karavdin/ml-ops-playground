@@ -15,7 +15,7 @@ services:
     networks:
       - practice
     volumes:
-      - ./data:/var/lib/postgresql/data
+      - ./pg-data:/var/lib/postgresql/data
   web:
     build:
       context: .
@@ -30,10 +30,11 @@ services:
     environment:
       POSTGRES_USER: postgres
       POSTGRES_PASSWORD: postgres
+      SQLALCHEMY_DATABASE_URL: postgresql://postgres:postgres@db:5432/db
     networks:
       - practice
 volumes:
-  data:
+  pg-data:
     driver: local
 networks:
   practice:

@@ -20,10 +20,10 @@ def convert_db_records(predictions):
     output = {}
     for data in predictions:
         print("data", data)
-        print("data['ticker']", data['ticker'])
-        print("data['date']", data["date"])
-        date = data["date"].strftime("%m/%d/%Y")
-        output[date] = data["forecast"]
+        print("data.ticker", data.ticker)
+        print("data.date", data.date)
+        date = data.date.strftime("%m/%d/%Y")
+        output[date] = data.forecast
     return output
 
 

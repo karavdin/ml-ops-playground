@@ -9,6 +9,7 @@ from app.db.crud import get_predictions, convert_db_records, get_items
 from app.db.database import SessionLocal, engine, Base, get_session
 from app.db.models import Predictions
 from app.db import schemas
+from app.db import models
 
 
 def init_db():
@@ -60,31 +61,40 @@ def get_prediction(payload: StockIn):
 
 
 @app.post("/fill", status_code=200)
-def fill_db(payload: StockIn, db: SessionLocal = Depends(get_session)):
+def fill_db(payload: StockIn):
     ticker = payload.ticker
     prediction_list = predict(ticker)
     for data in prediction_list:
         record = Predictions(ticker=ticker,
                              forecast=data["trend"],
                              date=data["ds"].strftime("%m/%d/%Y"))
-        db.add(record)     # add to db
-        db.commit()     # save changes
-        db.refresh(record)
+        with get_session() as session:
+            session.add(record)
+            session.commit()
+            # session.refresh(record)
+        # db.add(record)     # add to db
+        # db.commit()     # save changes
+        # db.refresh(record)
         # print(record.id)   # get ID
 
 
 @app.post("/forecast", response_model=StockOut, status_code=200)
-def read_forecast_from_db(payload: StockIn, limit: int = 7, db: SessionLocal = Depends(get_session)):
+def read_forecast_from_db(payload: StockIn, limit: int = 7):
     ticker = payload.ticker
-    predictions = get_predictions(db, limit=limit, ticker=ticker)
-    if not predictions:
-        raise HTTPException(status_code=400, detail="Data not found.")
-    print(" --- DEBUG START ---")
-    print(predictions)
-    response_object = {"ticker": ticker,
-                       "forecast": convert_db_records(predictions)}
-    print(" --- DEBUG END ---")
-    return response_object
+    with get_session() as session:
+        # predictions = get_predictions(session, limit=limit, ticker=ticker)
+        predictions = session.query(models.Predictions).filter(
+            models.Predictions.ticker == ticker).limit(limit).all()
+        if not predictions:
+            raise HTTPException(status_code=400, detail="Data not found.")
+        print(" --- DEBUG START ---")
+        print(predictions)
+        # for values in predictions:
+
+        response_object = {"ticker": ticker,
+                           "forecast": convert_db_records(predictions)}
+        # print(" --- DEBUG END ---")
+        return response_object
 
 
 @app.get("/testing_api")
@@ -94,7 +104,6 @@ def read_all():
         items = session.query(Predictions).all()
 
     return items
-
 
 
 """
