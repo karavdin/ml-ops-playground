@@ -12,5 +12,5 @@ COPY ./app/models_20230217/* /code/models_20230217/
 
 #RUN chmod a+x /code/app/scripts/wait-for-postgres.sh
 
-CMD ["uvicorn", "app.main:app", "--host", "0.0.0.0", "--port", "80"]
+CMD ["uvicorn", "app.main:app", "--host", "0.0.0.0", "--port", "8080"]
 
